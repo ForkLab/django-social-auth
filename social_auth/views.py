@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 
+from social_auth.exceptions import AuthException
 from social_auth.utils import sanitize_redirect, setting, \
                               backend_setting, clean_partial_pipeline
 from social_auth.decorators import dsa_view, disconnect_view
@@ -187,4 +188,11 @@ def auth_complete(request, backend, user=None, *args, **kwargs):
            xkwargs['backend'].name == backend.AUTH_BACKEND.name:
             return backend.continue_pipeline(pipeline_index=idx,
                                              *xargs, **xkwargs)
-    return backend.auth_complete(user=user, request=request, *args, **kwargs)
+    try:
+        user = backend.auth_complete(user=user, request=request, *args,
+                                     **kwargs)
+    except AuthException:
+        url = setting('SIGNUP_ERROR_URL', setting('LOGIN_ERROR_URL'))
+        return HttpResponseRedirect(url)
+    else:
+        return user
