@@ -132,7 +132,7 @@ class VKOAuth2Backend(OAuthBackend):
         """Return user details from VK account"""
         return {
             'username': response.get('screen_name'),
-            'email': '',
+            'email': response.get('email', ''),
             'first_name': response.get('first_name'),
             'last_name': response.get('last_name')
         }
